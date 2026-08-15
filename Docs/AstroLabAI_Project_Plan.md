@@ -62,12 +62,12 @@ An automated end-to-end Property Maintenance Triage System for a property manage
 - [x] Implement a database seed script (`app/seed.py`) to prepopulate sample Buildings, Units, and Vendors.
 - [x] Verify setup via FastAPI startup endpoint `/` or `/health`.
 
-### Phase 2: Core AI Extraction Engine (CURRENT PHASE)
-- [ ] Pydantic structured extraction model (`ExtractedTriage`).
-- [ ] OpenAI API integration for JSON parsing.
-- [ ] Rule-engine deterministic override layer.
+### Phase 2: Core AI Extraction Engine (COMPLETE)
+- [x] Pydantic structured extraction model (`ExtractedTriage`).
+- [x] OpenAI API integration for JSON parsing.
+- [x] Rule-engine deterministic override layer.
 
-### Phase 3: Dialogue State Machine & Simulation Engine
+### Phase 3: Dialogue State Machine & Simulation Engine (CURRENT PHASE)
 - [ ] State Machine handler.
 - [ ] Automated Vendor-Tenant slot negotiation logic.
 
