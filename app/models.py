@@ -63,6 +63,8 @@ class MaintenanceRequest(SQLModel, table=True):
     building_id: Optional[int] = Field(default=None, foreign_key="building.id")
     unit_id: Optional[int] = Field(default=None, foreign_key="unit.id")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    negotiation_iterations: int = Field(default=0)
+    needs_human_review: bool = Field(default=False)
 
     building: Optional[Building] = Relationship(back_populates="maintenance_requests")
     unit: Optional[Unit] = Relationship(back_populates="maintenance_requests")
