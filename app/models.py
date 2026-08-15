@@ -25,6 +25,7 @@ class IssueCategory(str, Enum):
     ELECTRICAL = "ELECTRICAL"
     ELEVATOR_HVAC = "ELEVATOR_HVAC"
     ACCESS_CONTROL = "ACCESS_CONTROL"
+    HAZARDOUS = "HAZARDOUS"
 
 class Building(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
