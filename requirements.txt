@@ -4,3 +4,5 @@ sqlmodel
 pydantic
 pydantic-settings
 openai
+streamlit
+requests

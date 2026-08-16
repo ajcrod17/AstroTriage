@@ -13,6 +13,9 @@ def dispatch_to_vendor(request_id: int, session: Session):
     request = session.get(MaintenanceRequest, request_id)
     if not request or request.status != RequestStatus.TRIAGED:
         return {"error": "Invalid request or status"}
+        
+    if request.needs_human_review or not request.building_id or not request.unit_id:
+        return {"error": "Cannot dispatch automatically. Missing building/unit or flagged for human review."}
     
     # Pick first matching vendor
     stmt = select(Vendor).where(Vendor.category == request.category)
@@ -23,7 +26,11 @@ def dispatch_to_vendor(request_id: int, session: Session):
         session.commit()
         return {"error": "No vendor found"}
         
-    msg = f"Dear {vendor.name}, we have a {request.category} issue at Building {request.building_id}, Unit {request.unit_id}. Please confirm your earliest available slot for an inspection."
+    b_str = request.building.name if request.building else f"Building {request.building_id}" if request.building_id else "the building"
+    u_str = request.unit.unit_identifier if request.unit else f"Unit {request.unit_id}" if request.unit_id else "the unit"
+    cat_str = request.category.value if request.category else "maintenance"
+    
+    msg = f"Dear {vendor.name}, we have a {cat_str} issue at {b_str}, {u_str}. Please confirm your earliest available slot for an inspection."
     log_communication(request_id, "SYSTEM->VENDOR", msg, session)
     
     request.status = RequestStatus.DISPATCHED
@@ -53,8 +60,10 @@ def handle_incoming_message(request_id: int, sender: str, raw_message: str, sess
             return {"status": "ESCALATED"}
             
         if parsed.proposed_slot:
-            msg = f"Dear Resident, we have scheduled a {request.category} inspection for {parsed.proposed_slot}. Please confirm if this works for you."
+            cat_str = request.category.value if request.category else "maintenance"
+            msg = f"Dear Resident, we have scheduled a {cat_str} inspection for {parsed.proposed_slot}. Please confirm if this works for you."
             log_communication(request_id, "SYSTEM->TENANT", msg, session)
+            session.commit()
             return {"status": "PROPOSED_TO_TENANT", "message": msg}
             
     elif sender == "TENANT":
