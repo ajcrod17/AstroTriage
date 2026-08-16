@@ -41,11 +41,24 @@ def intake_request(payload: IntakePayload, session: Session = Depends(get_sessio
             building_id = building.id
             
     unit_id = None
-    if building_id and triage.unit_clue:
-        stmt = select(Unit).where(Unit.building_id == building_id).where(Unit.unit_identifier.contains(triage.unit_clue))
-        unit = session.exec(stmt).first()
-        if unit:
-            unit_id = unit.id
+    needs_review = False
+    if triage.unit_clue:
+        stmt = select(Unit).where(Unit.unit_identifier.contains(triage.unit_clue))
+        if building_id:
+            stmt = stmt.where(Unit.building_id == building_id)
+            unit = session.exec(stmt).first()
+            if unit:
+                unit_id = unit.id
+        else:
+            units = session.exec(stmt).all()
+            if len(units) == 1:
+                unit_id = units[0].id
+                building_id = units[0].building_id
+            elif len(units) > 1:
+                needs_review = True # Ambiguous unit without a building
+
+    if not building_id or not unit_id:
+        needs_review = True
 
     new_request = MaintenanceRequest(
         raw_message=payload.message,
@@ -55,6 +68,7 @@ def intake_request(payload: IntakePayload, session: Session = Depends(get_sessio
         category=triage.category,
         building_id=building_id,
         unit_id=unit_id,
+        needs_human_review=needs_review,
         created_at=datetime.now(timezone.utc)
     )
     
@@ -62,7 +76,19 @@ def intake_request(payload: IntakePayload, session: Session = Depends(get_sessio
     session.commit()
     session.refresh(new_request)
     
-    return {"status": "success", "maintenance_request": new_request, "ai_reasoning": triage.reasoning}
+    dispatch_info = None
+    if not needs_review:
+        dispatch_res = dispatch_to_vendor(new_request.id, session)
+        if "error" not in dispatch_res:
+            session.refresh(new_request) # Refresh to get updated status
+            dispatch_info = dispatch_res.get("message")
+    
+    return {
+        "status": "success", 
+        "maintenance_request": new_request, 
+        "ai_reasoning": triage.reasoning,
+        "auto_dispatched": dispatch_info is not None
+    }
 
 @app.post("/simulate/dispatch/{request_id}")
 def simulate_dispatch(request_id: int, session: Session = Depends(get_session)):
@@ -82,6 +108,24 @@ def simulate_message(payload: MessagePayload, session: Session = Depends(get_ses
     if "error" in res:
         raise HTTPException(status_code=400, detail=res["error"])
     return res
+
+@app.get("/requests")
+def list_requests(session: Session = Depends(get_session)):
+    reqs = session.exec(
+        select(MaintenanceRequest, Building, Unit)
+        .join(Building, MaintenanceRequest.building_id == Building.id, isouter=True)
+        .join(Unit, MaintenanceRequest.unit_id == Unit.id, isouter=True)
+        .order_by(MaintenanceRequest.created_at.desc())
+    ).all()
+    
+    result = []
+    for req, bldg, unit in reqs:
+        req_dict = req.model_dump()
+        req_dict["building_name"] = bldg.name if bldg else None
+        req_dict["unit_identifier"] = unit.unit_identifier if unit else None
+        result.append(req_dict)
+        
+    return {"requests": result}
 
 @app.get("/requests/{request_id}")
 def get_request(request_id: int, session: Session = Depends(get_session)):
