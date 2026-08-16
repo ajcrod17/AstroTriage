@@ -9,10 +9,12 @@ from app.models import MaintenanceRequest, RequestStatus, Building, Unit, Commun
 from app.ai import extract_triage_info
 from app.triage_rules import apply_overrides
 from app.state_machine import dispatch_to_vendor, handle_incoming_message
+from app.seed import seed_data
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
+    seed_data()
     yield
 
 app = FastAPI(lifespan=lifespan, title="AstroTriage API")

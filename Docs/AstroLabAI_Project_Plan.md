@@ -74,8 +74,8 @@ An automated end-to-end Property Maintenance Triage System for a property manage
 ### Phase 4: Streamlit Dashboard UI (COMPLETE)
 - [x] Tabbed interface for intake, work order tracking, and chat logs.
 
-### Phase 5: Containerization & Documentation (CURRENT PHASE)
-- [ ] `docker-compose.yml` and `README.md`.
+### Phase 5: Containerization & Documentation (COMPLETE)
+- [x] `docker-compose.yml` and `README.md`.
 
 ---
 
@@ -83,3 +83,4 @@ An automated end-to-end Property Maintenance Triage System for a property manage
 1. **Manual Dispatch Override:** Update Tab 4's "Trigger Dispatch" button so it acts strictly as a manual override to release requests that were flagged for human review (after the human operator updates the missing building/unit info).
 2. **Contextual UI Improvements:** Add more context to Tabs 2, 3, and 4 (such as showing the initial raw message directly or via an expander/tooltip) so the user understands the nature of the request without relying solely on the Request ID.
 3. **Edge Case Testing:** Conduct rigorous testing with complex, ambiguous tenant replies (e.g. multi-part scheduling questions, uncooperative vendors) to ensure the AI fallback state machine handles them gracefully.
+4. **Mock Mode for API Key:** Option to build a mock mode. If an evaluator clones the repo and doesn't want to dig up their own OpenAI API key, a `--mock` flag or an `ENVIRONMENT="local"` variable that bypasses the LLM and returns a hardcoded `ExtractedTriage` Pydantic object would make testing frictionless.
