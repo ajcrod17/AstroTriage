@@ -19,7 +19,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📝 New Intake", "📋 Request Tracking", "�
 
 with tab1:
     st.header("New Maintenance Request")
-    with st.form("intake_form"):
+    with st.form("intake_form", clear_on_submit=True):
         channel = st.selectbox("Channel", ["WhatsApp", "Email", "Phone", "Portal"])
         message = st.text_area("Raw Message")
         submitted = st.form_submit_button("Submit Request")
@@ -59,6 +59,14 @@ with tab2:
                     return f'color: {color}; font-weight: bold;'
                     
                 st.dataframe(display_df.style.map(color_urgency, subset=['urgency']), use_container_width=True)
+                
+                st.divider()
+                with st.expander("🔍 Click to inspect Request context"):
+                    inspect_id = st.selectbox("Select Request ID to inspect:", df["id"].tolist(), key="inspect_sel")
+                    if inspect_id:
+                        selected_req = next(r for r in reqs if r["id"] == inspect_id)
+                        st.info(f"**🗣️ Raw Message:**\n\n{selected_req.get('raw_message', 'N/A')}")
+                        st.success(f"**🧠 AI Reasoning:**\n\n{selected_req.get('ai_reasoning', 'N/A')}")
             else:
                 st.info("No maintenance requests found.")
         else:
@@ -136,10 +144,13 @@ with tab4:
         st.divider()
         st.subheader("2. Simulate Incoming Message")
         if active_reqs:
-            msg_id = st.selectbox("Select Active Request", active_reqs, key="msg_sel")
-            sender = st.selectbox("Sender", ["VENDOR", "TENANT"])
-            sim_msg = st.text_area("Message Content")
-            if st.button("Send Message"):
+            with st.form("sim_msg_form", clear_on_submit=True):
+                msg_id = st.selectbox("Select Active Request", active_reqs, key="msg_sel")
+                sender = st.selectbox("Sender", ["VENDOR", "TENANT"])
+                sim_msg = st.text_area("Message Content")
+                submitted = st.form_submit_button("Send Message")
+                
+            if submitted:
                 with st.spinner("Processing message through AI Parser..."):
                     m_res = requests.post(f"{API_URL}/simulate/message", json={"request_id": msg_id, "sender": sender, "message": sim_msg})
                     if m_res.status_code == 200:

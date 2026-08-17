@@ -21,9 +21,9 @@ def seed_data():
         session.add_all(vendors)
 
         # Buildings
-        b1 = Building(name="Sunset Apartments", type=BuildingType.RESIDENTIAL, address="123 Sunset Blvd")
+        b1 = Building(name="Sunset Apartments Block B", type=BuildingType.RESIDENTIAL, address="123 Sunset Blvd")
         b2 = Building(name="Downtown Towers", type=BuildingType.COMMERCIAL, address="456 Main St")
-        b3 = Building(name="City Hall Annex", type=BuildingType.GOVERNMENT, address="789 Civic Center")
+        b3 = Building(name="Ministry Annex", type=BuildingType.GOVERNMENT, address="Rua da Prata")
         
         session.add_all([b1, b2, b3])
         session.commit() # Commit to get IDs
@@ -34,10 +34,13 @@ def seed_data():
             Unit(building_id=b1.id, unit_identifier="Apt 1B"),
             Unit(building_id=b1.id, unit_identifier="Apt 2A"),
             Unit(building_id=b1.id, unit_identifier="Apt 3C"),
+            Unit(building_id=b1.id, unit_identifier="5th floor"),
+            Unit(building_id=b1.id, unit_identifier="Garage Level -1"),
+            Unit(building_id=b1.id, unit_identifier="Garage Level -2"),
             Unit(building_id=b2.id, unit_identifier="Floor 1"),
             Unit(building_id=b2.id, unit_identifier="Floor 2"),
             Unit(building_id=b3.id, unit_identifier="Lobby"),
-            Unit(building_id=b3.id, unit_identifier="Office 101"),
+            Unit(building_id=b3.id, unit_identifier="Front Door"),
         ]
         session.add_all(units)
         session.commit()

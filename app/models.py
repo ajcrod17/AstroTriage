@@ -65,6 +65,7 @@ class MaintenanceRequest(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     negotiation_iterations: int = Field(default=0)
     needs_human_review: bool = Field(default=False)
+    ai_reasoning: Optional[str] = Field(default=None)
 
     building: Optional[Building] = Relationship(back_populates="maintenance_requests")
     unit: Optional[Unit] = Relationship(back_populates="maintenance_requests")

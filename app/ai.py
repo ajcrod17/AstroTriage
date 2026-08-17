@@ -11,7 +11,7 @@ client = OpenAI(
 
 class ExtractedTriage(BaseModel):
     building_clue: Optional[str] = Field(description="Any mention of the building name or address (e.g., 'Sunset Apartments', 'Block B')")
-    unit_clue: Optional[str] = Field(description="The specific apartment number or identifier (e.g., '3C', '1A'). Extract only the core identifier, excluding words like 'apartment' or 'apt'")
+    unit_clue: Optional[str] = Field(description="The specific apartment number or location identifier (e.g., '3C', 'Lobby', 'Front Door'). Extract only the core identifier, excluding words like 'apartment' or 'apt'")
     category: IssueCategory = Field(description="The identified issue category")
     urgency: UrgencyLevel = Field(description="The AI-determined urgency")
     reasoning: str = Field(description="Brief explanation for the categorization")

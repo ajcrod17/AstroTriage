@@ -76,6 +76,7 @@ def intake_request(payload: IntakePayload, session: Session = Depends(get_sessio
         building_id=building_id,
         unit_id=unit_id,
         needs_human_review=needs_review,
+        ai_reasoning=triage.reasoning,
         created_at=datetime.now(timezone.utc)
     )
     

@@ -3,7 +3,6 @@
 An automated end-to-end Property Maintenance Triage System for a property manager handling residential, commercial, and government buildings.
 
 - **Primary Stack:** Python 3.11+, FastAPI, SQLModel, SQLite, Pydantic, Streamlit, Docker Compose
-- **Target Interview Date:** Tuesday, August 18, 2026
 
 ---
 
