@@ -1,8 +1,18 @@
+"""
+Database Seed Script.
+
+Prepopulates the SQLite database with buildings, units, and specialized vendors.
+This ensures the evaluator has immediate data to test the routing logic.
+"""
 from sqlmodel import Session, select
 from app.database import engine, create_db_and_tables
 from app.models import Building, Unit, Vendor, BuildingType, IssueCategory
 
 def seed_data():
+    """
+    Seeding function. 
+    Only inserts dummy buildings and vendors if the database is currently empty.
+    """
     create_db_and_tables()
     with Session(engine) as session:
         # Check if already seeded

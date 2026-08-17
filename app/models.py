@@ -1,9 +1,22 @@
+"""
+Core Data Models for AstroTriage.
+
+This module defines the database schema using SQLModel, which combines SQLAlchemy's ORM
+(Object-Relational Mapping - Maps Python classes to DB tables) capabilities with
+Pydantic's data validation. By using SQLModel, we avoid defining duplicate schemas for
+the API layer and the Database layer.
+"""
 from datetime import datetime, timezone
 from typing import Optional, List
 from enum import Enum
 from sqlmodel import Field, SQLModel, Relationship
 
 class RequestStatus(str, Enum):
+    """
+    Typed Enums enforce strict domain boundaries.
+    By using an Enum instead of a raw string, we prevent typos and guarantee that 
+    the State Machine and LLM structured outputs only use valid statuses.
+    """
     NEW = "NEW"
     TRIAGED = "TRIAGED"
     DISPATCHED = "DISPATCHED"
@@ -11,16 +24,19 @@ class RequestStatus(str, Enum):
     COMPLETED = "COMPLETED"
 
 class UrgencyLevel(str, Enum):
+    """Urgency level determined by AI or safety rules."""
     EMERGENCY = "EMERGENCY"
     HIGH = "HIGH"
     ROUTINE = "ROUTINE"
 
 class BuildingType(str, Enum):
+    """Categorization of building properties."""
     RESIDENTIAL = "RESIDENTIAL"
     COMMERCIAL = "COMMERCIAL"
     GOVERNMENT = "GOVERNMENT"
 
 class IssueCategory(str, Enum):
+    """Maintenance issue domain used for vendor routing."""
     PLUMBING = "PLUMBING"
     ELECTRICAL = "ELECTRICAL"
     ELEVATOR_HVAC = "ELEVATOR_HVAC"
@@ -28,6 +44,7 @@ class IssueCategory(str, Enum):
     HAZARDOUS = "HAZARDOUS"
 
 class Building(SQLModel, table=True):
+    """Represents a physical property location."""
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     type: BuildingType
@@ -37,6 +54,7 @@ class Building(SQLModel, table=True):
     maintenance_requests: List["MaintenanceRequest"] = Relationship(back_populates="building")
 
 class Unit(SQLModel, table=True):
+    """Represents a specific apartment or area within a Building."""
     id: Optional[int] = Field(default=None, primary_key=True)
     building_id: int = Field(foreign_key="building.id")
     unit_identifier: str
@@ -45,6 +63,7 @@ class Unit(SQLModel, table=True):
     maintenance_requests: List["MaintenanceRequest"] = Relationship(back_populates="unit")
 
 class Vendor(SQLModel, table=True):
+    """Represents a 3rd party maintenance contractor."""
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     category: IssueCategory
@@ -54,6 +73,7 @@ class Vendor(SQLModel, table=True):
     work_orders: List["WorkOrder"] = Relationship(back_populates="vendor")
 
 class MaintenanceRequest(SQLModel, table=True):
+    """The core entity tracking an ongoing maintenance issue and its state."""
     id: Optional[int] = Field(default=None, primary_key=True)
     raw_message: str
     channel: str
@@ -73,6 +93,7 @@ class MaintenanceRequest(SQLModel, table=True):
     communications: List["CommunicationLog"] = Relationship(back_populates="request")
 
 class WorkOrder(SQLModel, table=True):
+    """A finalized, scheduled job assigned to a vendor."""
     id: Optional[int] = Field(default=None, primary_key=True)
     request_id: int = Field(foreign_key="maintenancerequest.id")
     vendor_id: Optional[int] = Field(default=None, foreign_key="vendor.id")
@@ -83,6 +104,7 @@ class WorkOrder(SQLModel, table=True):
     vendor: Optional[Vendor] = Relationship(back_populates="work_orders")
 
 class CommunicationLog(SQLModel, table=True):
+    """An audit trail of messages between the System, Vendor, and Tenant."""
     id: Optional[int] = Field(default=None, primary_key=True)
     request_id: int = Field(foreign_key="maintenancerequest.id")
     sender: str

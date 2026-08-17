@@ -1,3 +1,10 @@
+"""
+Multi-Agent Dialogue & State Machine.
+
+This module handles the core workflow logic post-triage. It orchestrates the 
+dispatching of vendors and the automated negotiation loops between the System, Vendor, and Tenant.
+It strictly enforces boundaries (like MAX_NEGOTIATIONS) to prevent infinite AI loops.
+"""
 from sqlmodel import Session, select
 from app.models import MaintenanceRequest, RequestStatus, Vendor, CommunicationLog, WorkOrder
 from app.ai_dialogue import parse_vendor_reply, parse_tenant_reply
@@ -5,11 +12,17 @@ from app.ai_dialogue import parse_vendor_reply, parse_tenant_reply
 MAX_NEGOTIATIONS = 3
 
 def log_communication(request_id: int, sender: str, message: str, session: Session):
+    """Helper to persist a message to the CommunicationLog audit trail."""
     log = CommunicationLog(request_id=request_id, sender=sender, message=message)
     session.add(log)
     return log
 
 def dispatch_to_vendor(request_id: int, session: Session):
+    """
+    Attempts to auto-dispatch a TRIAGED request to the appropriate domain vendor.
+    If the request requires human review (e.g., due to an ambiguous unit), it aborts 
+    and leaves it in the queue for a human operator.
+    """
     request = session.get(MaintenanceRequest, request_id)
     if not request or request.status != RequestStatus.TRIAGED:
         return {"error": "Invalid request or status"}
@@ -38,6 +51,12 @@ def dispatch_to_vendor(request_id: int, session: Session):
     return {"status": "DISPATCHED", "message": msg}
 
 def handle_incoming_message(request_id: int, sender: str, raw_message: str, session: Session):
+    """
+    The main multi-agent communication loop. 
+    It receives a raw string from either VENDOR or TENANT, uses the AI Dialogue Parser 
+    to extract intent, and progresses the state machine (e.g. DISPATCHED -> SCHEDULED).
+    It implements a hard limit (MAX_NEGOTIATIONS) circuit breaker.
+    """
     request = session.get(MaintenanceRequest, request_id)
     if not request:
         return {"error": "Request not found"}

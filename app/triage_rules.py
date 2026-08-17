@@ -1,7 +1,20 @@
+"""
+Deterministic Guardrails Engine.
+
+This module implements the 'Hybrid Architecture'. While the LLM is exceptional at 
+natural language parsing (Phase 1), relying purely on AI for routing life-safety operations 
+is a liability. This deterministic rules engine scans the parsed output and enforces 
+absolute safety overrides (e.g. escalating 'smell gas' to EMERGENCY HAZARDOUS) regardless 
+of what the AI initially decided.
+"""
 from app.ai import ExtractedTriage
 from app.models import UrgencyLevel, IssueCategory
 
 def apply_overrides(triage: ExtractedTriage, raw_message: str) -> ExtractedTriage:
+    """
+    Scans the raw message for strict life-safety keywords and forces category/urgency overrides.
+    It deliberately runs AFTER the AI extraction to guarantee a safety net.
+    """
     text = raw_message.lower()
     original_urgency = triage.urgency
     original_category = triage.category

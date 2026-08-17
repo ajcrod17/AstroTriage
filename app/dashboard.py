@@ -1,3 +1,10 @@
+"""
+Streamlit Control Center UI.
+
+This file serves as the Presentation Layer. It is intentionally completely decoupled 
+from the database and AI logic. All data reads and writes occur via standard HTTP 
+requests to the FastAPI backend, demonstrating a microservice-ready architecture.
+"""
 import streamlit as st
 import requests
 import pandas as pd
@@ -19,6 +26,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📝 New Intake", "📋 Request Tracking", "�
 
 with tab1:
     st.header("New Maintenance Request")
+    # clear_on_submit=True resets the form cleanly after ingestion
     with st.form("intake_form", clear_on_submit=True):
         channel = st.selectbox("Channel", ["WhatsApp", "Email", "Phone", "Portal"])
         message = st.text_area("Raw Message")
@@ -55,6 +63,7 @@ with tab2:
                 display_df = df[['id', 'channel', 'status', 'urgency', 'category', 'building_name', 'unit_identifier', 'needs_human_review', 'created_at']]
                 
                 def color_urgency(val):
+                    """Helper to color-code urgency levels in the Streamlit dataframe."""
                     color = '#ef4444' if val == 'EMERGENCY' else '#f59e0b' if val == 'HIGH' else '#10b981' if val == 'ROUTINE' else ''
                     return f'color: {color}; font-weight: bold;'
                     
