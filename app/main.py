@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from datetime import datetime, timezone
@@ -22,6 +23,10 @@ app = FastAPI(lifespan=lifespan, title="AstroTriage API")
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+@app.get("/", include_in_schema=False)
+def read_root():
+    return RedirectResponse(url="/docs")
 
 class IntakePayload(BaseModel):
     message: str

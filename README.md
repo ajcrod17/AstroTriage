@@ -4,18 +4,37 @@ AstroTriage is an intelligent, automated triage and dispatch platform designed s
 
 ## Quick Start
 
-AstroTriage is fully containerized for a frictionless, one-command setup.
+AstroTriage is fully containerized for a frictionless setup. We provide a `Makefile` for absolute ease of use.
 
 1. **Create an Environment File**: In the root of the repository, create a `.env` file containing your OpenRouter/OpenAI API key.
    ```bash
    echo "OPENAI_API_KEY=your_api_key_here" > .env
    ```
 
-2. **Run with Docker Compose**:
+2. **Run the Application**:
+   Simply run the following command to build and launch the environment in the background:
    ```bash
-   docker-compose up --build
+   make up
    ```
    *Note: The backend API will boot first, generate the local SQLite database in a persistent volume, and seed it with test data. The Streamlit dashboard relies on a healthcheck and will only boot once the API is fully ready to receive traffic.*
+
+   **Other useful commands:**
+   - `make logs`: Tail the live logs of both services.
+   - `make clean`: Completely wipe the database state and shut down containers.
+   - `make restart`: Wipe state and boot a fresh instance.
+   - `make down`: Stop the containers.
+
+   *(Fallback if `make` is not installed, or for native Windows PowerShell users):*
+   ```bash
+   # Start the environment
+   docker compose up --build -d
+   
+   # Stop the environment
+   docker compose down
+   
+   # Wipe the database (equivalent to make clean)
+   docker run --rm -v "${PWD}/data:/data" python:3.11-slim bash -c "rm -rf /data/*"
+   ```
 
 3. **Access the Application**:
    - **Triage Dashboard (UI)**: [http://localhost:8501](http://localhost:8501)
